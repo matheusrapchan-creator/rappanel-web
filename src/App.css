@@ -417,6 +417,72 @@ td small {
   white-space: nowrap;
 }
 
+.quote-option-row {
+  cursor: pointer;
+}
+
+.quote-option-row:hover td {
+  background: #f8fafc;
+}
+
+.quote-detail-row td {
+  padding: 0;
+  background: #f8fafc;
+}
+
+.quote-detail {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.margin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.margin-grid div {
+  display: grid;
+  gap: 4px;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid #e3e9f2;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.margin-grid span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.margin-grid strong {
+  color: #111827;
+  font-size: 18px;
+}
+
+.detail-table-wrapper {
+  overflow-x: auto;
+}
+
+.detail-table {
+  min-width: 620px;
+}
+
+.detail-table th,
+.detail-table td {
+  background: #ffffff;
+}
+
+.detail-table td:nth-child(3) {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .quote-row {
   display: flex;
   align-items: center;
@@ -539,7 +605,8 @@ td small {
 
 @media (max-width: 1100px) {
   .metrics-grid,
-  .kanban-grid {
+  .kanban-grid,
+  .margin-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -592,7 +659,8 @@ td small {
 
   .metrics-grid,
   .kanban-grid,
-  .form-grid {
+  .form-grid,
+  .margin-grid {
     grid-template-columns: 1fr;
   }
 

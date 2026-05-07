@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://api.raptech.com.br";
@@ -78,6 +78,10 @@ function moneyFromQuote(item) {
 function formatGeneration(value) {
   if (!value) return "-";
   return `${Number(value).toLocaleString("pt-BR")} kWh/mês`;
+}
+
+function quoteKey(item, index) {
+  return String(item.id || `${item.cliente || "cliente"}-${index}`);
 }
 
 function groupQuotesByClient(orcamentos) {
@@ -326,6 +330,7 @@ function AgendaList({ agenda }) {
 
 function OrcamentosList({ orcamentos }) {
   const [expandedClient, setExpandedClient] = useState("");
+  const [expandedQuote, setExpandedQuote] = useState("");
   const clientes = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
 
   return (
@@ -378,22 +383,86 @@ function OrcamentosList({ orcamentos }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {cliente.items.map((item, index) => (
-                        <tr key={item.id || `${cliente.cliente}-${index}`}>
-                          <td>#{item.id || index + 1}</td>
-                          <td>
-                            <strong>{item.opcao || item.marca_modulo || "Sem opção"}</strong>
-                            <small>{item.observacao || item.descricao || ""}</small>
-                          </td>
-                          <td>{item.modulos || "-"}</td>
-                          <td>{item.inversor || "-"}</td>
-                          <td>{formatGeneration(item.geracao_estimada_kwh || item.geracao)}</td>
-                          <td>{formatCurrency(moneyFromQuote(item))}</td>
-                          <td>
-                            <StatusBadge status={item.status} />
-                          </td>
-                        </tr>
-                      ))}
+                      {cliente.items.map((item, index) => {
+                        const key = quoteKey(item, index);
+                        const isOpen = expandedQuote === key;
+
+                        return (
+                          <Fragment key={key}>
+                            <tr
+                              className="quote-option-row"
+                              key={key}
+                              onClick={() => setExpandedQuote((current) => (current === key ? "" : key))}
+                            >
+                              <td>#{item.id || index + 1}</td>
+                              <td>
+                                <strong>{item.opcao || item.marca_modulo || "Sem opção"}</strong>
+                                <small>{item.observacao || item.descricao || ""}</small>
+                              </td>
+                              <td>{item.modulos || "-"}</td>
+                              <td>{item.inversor || "-"}</td>
+                              <td>{formatGeneration(item.geracao_estimada_kwh || item.geracao)}</td>
+                              <td>{formatCurrency(moneyFromQuote(item))}</td>
+                              <td>
+                                <StatusBadge status={item.status} />
+                              </td>
+                            </tr>
+
+                            {isOpen && (
+                              <tr className="quote-detail-row" key={`${key}-detail`}>
+                                <td colSpan="7">
+                                  <div className="quote-detail">
+                                    <div className="margin-grid">
+                                      <div>
+                                        <span>Total Material DC</span>
+                                        <strong>{formatCurrency(item.total_material_dc)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Lucro</span>
+                                        <strong>{formatCurrency(item.lucro)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Lucro c/ desc. 5%</span>
+                                        <strong>{formatCurrency(item.lucro_com_desconto_5)}</strong>
+                                      </div>
+                                      <div>
+                                        <span>Margem</span>
+                                        <strong>{item.margem_percentual ? `${item.margem_percentual}%` : "-"}</strong>
+                                      </div>
+                                    </div>
+
+                                    <div className="detail-table-wrapper">
+                                      <table className="detail-table">
+                                        <thead>
+                                          <tr>
+                                            <th>Item</th>
+                                            <th>Cálculo</th>
+                                            <th>Valor</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {(Array.isArray(item.detalhamento) ? item.detalhamento : []).map((row, rowIndex) => (
+                                            <tr key={`${key}-detail-${rowIndex}`}>
+                                              <td>{row.item || "-"}</td>
+                                              <td>{row.calculo || "-"}</td>
+                                              <td>{formatCurrency(row.valor)}</td>
+                                            </tr>
+                                          ))}
+                                          {!Array.isArray(item.detalhamento) || !item.detalhamento.length ? (
+                                            <tr>
+                                              <td colSpan="3">Sem detalhamento de margem neste orçamento.</td>
+                                            </tr>
+                                          ) : null}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
