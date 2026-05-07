@@ -75,6 +75,37 @@ function moneyFromQuote(item) {
   return item.valor_venda || item.valor || item.total || item.preco || 0;
 }
 
+function groupQuotesByClient(orcamentos) {
+  const groups = new Map();
+
+  for (const item of orcamentos) {
+    const cliente = (item.cliente || item.nome || "Cliente sem nome").trim();
+    const key = cliente.toLowerCase();
+    const current = groups.get(key) || {
+      cliente,
+      total: 0,
+      count: 0,
+      latestStatus: item.status,
+      latestDate: item.atualizado_em || item.criado_em || "",
+      items: [],
+    };
+
+    current.items.push(item);
+    current.count += 1;
+    current.total += Number(moneyFromQuote(item) || 0);
+
+    const itemDate = item.atualizado_em || item.criado_em || "";
+    if (String(itemDate) > String(current.latestDate)) {
+      current.latestDate = itemDate;
+      current.latestStatus = item.status;
+    }
+
+    groups.set(key, current);
+  }
+
+  return Array.from(groups.values()).sort((a, b) => String(b.latestDate).localeCompare(String(a.latestDate)));
+}
+
 async function requestApi(path, options = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -289,32 +320,60 @@ function AgendaList({ agenda }) {
 }
 
 function OrcamentosList({ orcamentos }) {
+  const [expandedClient, setExpandedClient] = useState("");
+  const clientes = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
+
   return (
     <section className="panel">
       <div className="section-title">
         <div>
           <span>Comercial</span>
-          <h2>Lista de orçamentos</h2>
+          <h2>Clientes e orçamentos</h2>
         </div>
         <span className="section-icon">R$</span>
       </div>
 
       <div className="quote-list">
-        {orcamentos.map((item, index) => (
-          <article className="quote-row" key={item.id || `${item.cliente}-${index}`}>
-            <div>
-              <strong>{item.cliente || item.nome || "Cliente sem nome"}</strong>
-              <small>{item.servico || item.descricao || item.observacao || "Sem descrição"}</small>
-            </div>
-            <div className="quote-value">
-              <b>{formatCurrency(moneyFromQuote(item))}</b>
-              <StatusBadge status={item.status} />
-            </div>
+        {clientes.map((cliente) => (
+          <article className="client-group" key={cliente.cliente}>
+            <button
+              className="client-row"
+              type="button"
+              onClick={() => setExpandedClient((current) => (current === cliente.cliente ? "" : cliente.cliente))}
+            >
+              <div>
+                <strong>{cliente.cliente}</strong>
+                <small>
+                  {cliente.count} orçamento{cliente.count > 1 ? "s" : ""} enviado{cliente.count > 1 ? "s" : ""}
+                </small>
+              </div>
+              <div className="quote-value">
+                <b>{formatCurrency(cliente.total)}</b>
+                <StatusBadge status={cliente.latestStatus} />
+              </div>
+            </button>
+
+            {expandedClient === cliente.cliente && (
+              <div className="client-quotes">
+                {cliente.items.map((item, index) => (
+                  <div className="quote-row quote-row-nested" key={item.id || `${cliente.cliente}-${index}`}>
+                    <div>
+                      <strong>Orçamento #{item.id || index + 1}</strong>
+                      <small>{item.servico || item.descricao || item.observacao || "Sem descrição"}</small>
+                    </div>
+                    <div className="quote-value">
+                      <b>{formatCurrency(moneyFromQuote(item))}</b>
+                      <StatusBadge status={item.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </article>
         ))}
       </div>
 
-      {!orcamentos.length && (
+      {!clientes.length && (
         <EmptyState
           title="Nenhum orçamento encontrado"
           caption="Os orçamentos criados na API vão aparecer nesta área."
@@ -418,6 +477,7 @@ function App() {
     return orcamentos.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
   }, [orcamentos, search]);
 
+  const clientesComOrcamento = useMemo(() => groupQuotesByClient(orcamentos).length, [orcamentos]);
   const valorAberto = orcamentos.reduce((total, item) => total + Number(moneyFromQuote(item) || 0), 0);
   const tarefasPendentes = agenda.filter((item) => !["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status))).length;
 
@@ -477,7 +537,7 @@ function App() {
             accent={apiStatus === "online" ? "green" : "red"}
           />
           <MetricCard label="Agenda" value={agenda.length} caption={`${tarefasPendentes} pendentes`} accent="blue" />
-          <MetricCard label="Orçamentos" value={orcamentos.length} caption="registros comerciais" accent="purple" />
+          <MetricCard label="Clientes" value={clientesComOrcamento} caption={`${orcamentos.length} orçamentos enviados`} accent="purple" />
           <MetricCard label="Valor em orçamento" value={formatCurrency(valorAberto)} caption="soma aproximada" accent="amber" />
         </section>
 

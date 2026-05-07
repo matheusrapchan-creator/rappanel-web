@@ -343,6 +343,47 @@ td small {
   gap: 10px;
 }
 
+.client-group {
+  border: 1px solid #edf1f6;
+  border-radius: 8px;
+  background: #fbfcfe;
+  overflow: hidden;
+}
+
+.client-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 76px;
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-row:hover {
+  background: #f3f7fb;
+}
+
+.client-row strong,
+.client-row small {
+  display: block;
+}
+
+.client-row small {
+  color: #667085;
+}
+
+.client-quotes {
+  display: grid;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
 .quote-row {
   display: flex;
   align-items: center;
@@ -353,6 +394,11 @@ td small {
   border: 1px solid #edf1f6;
   border-radius: 8px;
   background: #fbfcfe;
+}
+
+.quote-row-nested {
+  min-height: 64px;
+  background: #ffffff;
 }
 
 .quote-row strong,
