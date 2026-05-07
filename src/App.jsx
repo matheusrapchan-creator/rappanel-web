@@ -75,6 +75,11 @@ function moneyFromQuote(item) {
   return item.valor_venda || item.valor || item.total || item.preco || 0;
 }
 
+function formatGeneration(value) {
+  if (!value) return "-";
+  return `${Number(value).toLocaleString("pt-BR")} kWh/mês`;
+}
+
 function groupQuotesByClient(orcamentos) {
   const groups = new Map();
 
@@ -355,18 +360,43 @@ function OrcamentosList({ orcamentos }) {
 
             {expandedClient === cliente.cliente && (
               <div className="client-quotes">
-                {cliente.items.map((item, index) => (
-                  <div className="quote-row quote-row-nested" key={item.id || `${cliente.cliente}-${index}`}>
-                    <div>
-                      <strong>Orçamento #{item.id || index + 1}</strong>
-                      <small>{item.servico || item.descricao || item.observacao || "Sem descrição"}</small>
-                    </div>
-                    <div className="quote-value">
-                      <b>{formatCurrency(moneyFromQuote(item))}</b>
-                      <StatusBadge status={item.status} />
-                    </div>
-                  </div>
-                ))}
+                <p className="client-summary">
+                  Foram criados {cliente.count} orçamento{cliente.count > 1 ? "s" : ""} para {cliente.cliente}.
+                </p>
+
+                <div className="client-quotes-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Opção</th>
+                        <th>Módulos</th>
+                        <th>Inversor</th>
+                        <th>Geração</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cliente.items.map((item, index) => (
+                        <tr key={item.id || `${cliente.cliente}-${index}`}>
+                          <td>#{item.id || index + 1}</td>
+                          <td>
+                            <strong>{item.opcao || item.marca_modulo || "Sem opção"}</strong>
+                            <small>{item.observacao || item.descricao || ""}</small>
+                          </td>
+                          <td>{item.modulos || "-"}</td>
+                          <td>{item.inversor || "-"}</td>
+                          <td>{formatGeneration(item.geracao_estimada_kwh || item.geracao)}</td>
+                          <td>{formatCurrency(moneyFromQuote(item))}</td>
+                          <td>
+                            <StatusBadge status={item.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </article>

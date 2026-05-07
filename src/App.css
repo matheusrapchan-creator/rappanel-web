@@ -384,6 +384,39 @@ td small {
   padding: 0 14px 14px;
 }
 
+.client-summary {
+  margin: 0;
+  color: #475467;
+  font-weight: 700;
+}
+
+.client-quotes-table {
+  overflow-x: auto;
+}
+
+.client-quotes-table table {
+  min-width: 760px;
+  border: 1px solid #edf1f6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.client-quotes-table th,
+.client-quotes-table td {
+  background: #ffffff;
+}
+
+.client-quotes-table td:first-child {
+  color: #475467;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.client-quotes-table td:nth-child(5),
+.client-quotes-table td:nth-child(6) {
+  white-space: nowrap;
+}
+
 .quote-row {
   display: flex;
   align-items: center;
