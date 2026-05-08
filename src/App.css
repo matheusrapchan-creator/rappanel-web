@@ -645,9 +645,14 @@ td small {
 
   .topbar-actions {
     align-items: stretch;
+    flex-direction: column;
   }
 
   .search-input {
+    width: 100%;
+  }
+
+  .secondary-button {
     width: 100%;
   }
 }
@@ -655,6 +660,36 @@ td small {
 @media (max-width: 640px) {
   h1 {
     font-size: 26px;
+  }
+
+  .content-area {
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .sidebar {
+    padding: 14px 12px;
+  }
+
+  .brand {
+    margin-bottom: 14px;
+  }
+
+  .nav-list {
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .nav-list a {
+    min-width: max-content;
+    min-height: 38px;
+    padding: 0 10px;
+  }
+
+  .panel,
+  .metric {
+    padding: 14px;
   }
 
   .metrics-grid,
@@ -671,5 +706,83 @@ td small {
 
   .quote-value {
     justify-items: start;
+  }
+
+  .client-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .client-quotes {
+    padding: 0 10px 10px;
+  }
+
+  .table-wrapper table,
+  .client-quotes-table table,
+  .detail-table {
+    min-width: 0;
+  }
+
+  .table-wrapper thead,
+  .client-quotes-table thead,
+  .detail-table thead {
+    display: none;
+  }
+
+  .table-wrapper tr,
+  .client-quotes-table tr,
+  .detail-table tr {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid #edf1f6;
+  }
+
+  .table-wrapper td,
+  .client-quotes-table td,
+  .detail-table td {
+    display: grid;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+  }
+
+  .table-wrapper td::before,
+  .client-quotes-table td::before,
+  .detail-table td::before {
+    content: attr(data-label);
+    color: #667085;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .table-wrapper td:first-child::before,
+  .quote-detail-row td::before {
+    content: "";
+    display: none;
+  }
+
+  .quote-detail-row {
+    padding: 0 !important;
+  }
+
+  .quote-detail-row td {
+    display: block;
+  }
+
+  .quote-detail {
+    padding: 10px;
+  }
+
+  .margin-grid div {
+    min-height: auto;
+  }
+
+  .detail-table td:nth-child(3),
+  .client-quotes-table td:nth-child(5),
+  .client-quotes-table td:nth-child(6) {
+    white-space: normal;
   }
 }

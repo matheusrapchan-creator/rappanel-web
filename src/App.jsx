@@ -306,10 +306,10 @@ function AgendaList({ agenda }) {
                   <strong>{item.titulo || "Compromisso"}</strong>
                   <small>{item.observacao || item.tipo || "Sem observação"}</small>
                 </td>
-                <td>{item.cliente || "-"}</td>
-                <td>{item.responsavel || "-"}</td>
-                <td>{formatDate(item)}</td>
-                <td>
+                <td data-label="Cliente">{item.cliente || "-"}</td>
+                <td data-label="Responsável">{item.responsavel || "-"}</td>
+                <td data-label="Quando">{formatDate(item)}</td>
+                <td data-label="Status">
                   <StatusBadge status={item.status} />
                 </td>
               </tr>
@@ -394,16 +394,16 @@ function OrcamentosList({ orcamentos }) {
                               key={key}
                               onClick={() => setExpandedQuote((current) => (current === key ? "" : key))}
                             >
-                              <td>#{item.id || index + 1}</td>
-                              <td>
+                              <td data-label="ID">#{item.id || index + 1}</td>
+                              <td data-label="Opção">
                                 <strong>{item.opcao || item.marca_modulo || "Sem opção"}</strong>
                                 <small>{item.observacao || item.descricao || ""}</small>
                               </td>
-                              <td>{item.modulos || "-"}</td>
-                              <td>{item.inversor || "-"}</td>
-                              <td>{formatGeneration(item.geracao_estimada_kwh || item.geracao)}</td>
-                              <td>{formatCurrency(moneyFromQuote(item))}</td>
-                              <td>
+                              <td data-label="Módulos">{item.modulos || "-"}</td>
+                              <td data-label="Inversor">{item.inversor || "-"}</td>
+                              <td data-label="Geração">{formatGeneration(item.geracao_estimada_kwh || item.geracao)}</td>
+                              <td data-label="Valor">{formatCurrency(moneyFromQuote(item))}</td>
+                              <td data-label="Status">
                                 <StatusBadge status={item.status} />
                               </td>
                             </tr>
@@ -443,9 +443,9 @@ function OrcamentosList({ orcamentos }) {
                                         <tbody>
                                           {(Array.isArray(item.detalhamento) ? item.detalhamento : []).map((row, rowIndex) => (
                                             <tr key={`${key}-detail-${rowIndex}`}>
-                                              <td>{row.item || "-"}</td>
-                                              <td>{row.calculo || "-"}</td>
-                                              <td>{formatCurrency(row.valor)}</td>
+                                              <td data-label="Item">{row.item || "-"}</td>
+                                              <td data-label="Cálculo">{row.calculo || "-"}</td>
+                                              <td data-label="Valor">{formatCurrency(row.valor)}</td>
                                             </tr>
                                           ))}
                                           {!Array.isArray(item.detalhamento) || !item.detalhamento.length ? (
