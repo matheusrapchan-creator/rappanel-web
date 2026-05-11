@@ -20,12 +20,12 @@
 
 .tv-mode .content-area {
   display: grid;
-  grid-template-columns: 1fr 1.35fr 0.9fr;
+  grid-template-columns: 1.05fr 1fr;
   grid-template-rows: auto auto minmax(0, 1fr);
   grid-template-areas:
-    "topbar topbar topbar"
-    "metrics metrics metrics"
-    "agenda orcamentos kanban";
+    "topbar topbar"
+    "metrics metrics"
+    "agenda orcamentos";
   gap: 14px;
   height: 100vh;
   overflow: hidden;
@@ -90,10 +90,6 @@
 
 .tv-mode #orcamentos {
   grid-area: orcamentos;
-}
-
-.tv-mode #kanban {
-  grid-area: kanban;
 }
 
 .tv-mode .section-title {
@@ -181,29 +177,6 @@
 
 .tv-mode .margin-grid strong {
   font-size: 15px;
-}
-
-.tv-mode .kanban-grid {
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.tv-mode .kanban-column {
-  min-height: 0;
-  padding: 10px;
-}
-
-.tv-mode .kanban-card {
-  padding: 8px;
-}
-
-.tv-mode .kanban-card:nth-of-type(n + 4) {
-  display: none;
-}
-
-.tv-mode .client-group:nth-child(n + 6),
-.tv-mode .table-wrapper tbody tr:nth-child(n + 6) {
-  display: none;
 }
 
 .tv-mode .quote-detail-row,

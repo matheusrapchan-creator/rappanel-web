@@ -653,6 +653,9 @@ function App() {
     return orcamentos.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
   }, [orcamentos, search]);
 
+  const orcamentosEmAberto = useMemo(() => (
+    orcamentosFiltrados.filter((item) => !["aprovado", "concluído", "concluido", "cancelado", "recusado"].includes(normalizeStatus(item.status)))
+  ), [orcamentosFiltrados]);
   const clientesComOrcamento = useMemo(() => groupQuotesByClient(orcamentos).length, [orcamentos]);
   const valorAberto = orcamentos.reduce((total, item) => total + Number(moneyFromQuote(item) || 0), 0);
   const tarefasPendentes = agenda.filter((item) => !["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status))).length;
@@ -739,12 +742,14 @@ function App() {
         </section>
 
         <section id="orcamentos">
-          <OrcamentosList orcamentos={isTvMode ? orcamentosFiltrados.slice(0, 8) : orcamentosFiltrados} />
+          <OrcamentosList orcamentos={isTvMode ? orcamentosEmAberto : orcamentosFiltrados} />
         </section>
 
-        <section id="kanban">
-          <KanbanPreview agenda={agenda} orcamentos={orcamentos} />
-        </section>
+        {!isTvMode && (
+          <section id="kanban">
+            <KanbanPreview agenda={agenda} orcamentos={orcamentos} />
+          </section>
+        )}
       </section>
     </main>
   );
