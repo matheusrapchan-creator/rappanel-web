@@ -114,7 +114,12 @@ function groupQuotesByClient(orcamentos) {
     groups.set(key, current);
   }
 
-  return Array.from(groups.values()).sort((a, b) => String(b.latestDate).localeCompare(String(a.latestDate)));
+  return Array.from(groups.values())
+    .map((group) => ({
+      ...group,
+      average: group.count ? group.total / group.count : 0,
+    }))
+    .sort((a, b) => String(b.latestDate).localeCompare(String(a.latestDate)));
 }
 
 async function requestApi(path, options = {}) {
@@ -393,7 +398,8 @@ function OrcamentosList({ orcamentos }) {
                 </small>
               </div>
               <div className="quote-value">
-                <b>{formatCurrency(cliente.total)}</b>
+                <b>{formatCurrency(cliente.average)}</b>
+                <small>Média</small>
                 <StatusBadge status={cliente.latestStatus} />
               </div>
             </button>
@@ -656,8 +662,9 @@ function App() {
   const orcamentosEmAberto = useMemo(() => (
     orcamentosFiltrados.filter((item) => !["aprovado", "concluído", "concluido", "cancelado", "recusado"].includes(normalizeStatus(item.status)))
   ), [orcamentosFiltrados]);
-  const clientesComOrcamento = useMemo(() => groupQuotesByClient(orcamentos).length, [orcamentos]);
-  const valorAberto = orcamentos.reduce((total, item) => total + Number(moneyFromQuote(item) || 0), 0);
+  const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
+  const clientesComOrcamento = clientesAgrupados.length;
+  const valorAberto = clientesAgrupados.reduce((total, cliente) => total + cliente.average, 0);
   const tarefasPendentes = agenda.filter((item) => !["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status))).length;
 
   if (!isAuthenticated) {
@@ -733,7 +740,7 @@ function App() {
           />
           <MetricCard label="Agenda" value={agenda.length} caption={`${tarefasPendentes} pendentes`} accent="blue" />
           <MetricCard label="Clientes" value={clientesComOrcamento} caption={`${orcamentos.length} orçamentos enviados`} accent="purple" />
-          <MetricCard label="Valor em orçamento" value={formatCurrency(valorAberto)} caption="soma aproximada" accent="amber" />
+          <MetricCard label="Valor em orçamento" value={formatCurrency(valorAberto)} caption="média por cliente" accent="amber" />
         </section>
 
         <section className="workspace-grid" id="agenda">
