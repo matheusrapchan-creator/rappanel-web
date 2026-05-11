@@ -738,7 +738,7 @@ function App() {
 
         <section className="workspace-grid" id="agenda">
           {!isTvMode && <AgendaForm onSaved={carregarDados} />}
-          <AgendaList agenda={isTvMode ? agendaFiltrada.slice(0, 5) : agendaFiltrada} />
+          <AgendaList agenda={isTvMode ? agendaFiltrada.slice(0, 15) : agendaFiltrada} />
         </section>
 
         <section id="orcamentos">

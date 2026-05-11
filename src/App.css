@@ -26,54 +26,56 @@
     "topbar topbar"
     "metrics metrics"
     "agenda orcamentos";
-  gap: 14px;
+  gap: 10px;
   height: 100vh;
   overflow: hidden;
-  padding: 18px 22px;
+  padding: 10px 14px;
 }
 
 .tv-mode .topbar {
   grid-area: topbar;
-  min-height: 52px;
+  min-height: 38px;
 }
 
 .tv-mode h1 {
-  font-size: 34px;
+  font-size: 24px;
 }
 
 .tv-mode h2 {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .tv-mode .eyebrow,
 .tv-mode .section-title span:first-child,
 .tv-mode .metric-kicker {
-  font-size: 15px;
+  font-size: 11px;
 }
 
 .tv-mode .metrics-grid {
   grid-area: metrics;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .tv-mode .metric {
-  min-height: 104px;
-  padding: 14px;
+  min-height: 64px;
+  padding: 8px 10px;
+  border-top-width: 3px;
 }
 
 .tv-mode .metric strong {
-  font-size: 30px;
+  font-size: 22px;
 }
 
 .tv-mode .metric small {
-  font-size: 14px;
+  font-size: 11px;
 }
 
 .tv-mode .panel {
   height: 100%;
+  min-height: 0;
   overflow: hidden;
-  padding: 14px;
+  padding: 10px;
 }
 
 .tv-mode .workspace-grid {
@@ -93,18 +95,23 @@
 }
 
 .tv-mode .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .tv-mode .section-icon {
-  min-width: 30px;
-  height: 30px;
+  min-width: 24px;
+  height: 24px;
+  font-size: 12px;
 }
 
 .tv-mode .table-wrapper,
-.tv-mode .client-quotes-table,
-.tv-mode .detail-table-wrapper {
+.tv-mode .client-quotes-table {
+  height: calc(100vh - 190px);
   overflow: hidden;
+}
+
+.tv-mode .detail-table-wrapper {
+  overflow: auto;
 }
 
 .tv-mode table,
@@ -114,32 +121,41 @@
 }
 
 .tv-mode th {
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .tv-mode td {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .tv-mode th,
 .tv-mode td {
-  padding: 8px 7px;
+  padding: 4px 6px;
 }
 
 .tv-mode td strong,
 .tv-mode .client-row strong,
 .tv-mode .kanban-card strong {
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .tv-mode td small,
 .tv-mode .client-row small {
-  font-size: 12px;
+  font-size: 9px;
+}
+
+.tv-mode .table-wrapper tr {
+  height: calc((100vh - 232px) / 15);
+}
+
+.tv-mode .table-wrapper td {
+  max-height: calc((100vh - 232px) / 15);
+  overflow: hidden;
 }
 
 .tv-mode .client-row {
-  min-height: 58px;
-  padding: 10px;
+  min-height: 46px;
+  padding: 8px;
 }
 
 .tv-mode .client-quotes {
@@ -148,7 +164,7 @@
 }
 
 .tv-mode .client-summary {
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .tv-mode .client-quotes-table table,
@@ -157,13 +173,13 @@
 }
 
 .tv-mode .quote-value b {
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .tv-mode .status {
-  min-height: 24px;
-  padding: 0 8px;
-  font-size: 11px;
+  min-height: 20px;
+  padding: 0 6px;
+  font-size: 10px;
 }
 
 .tv-mode .margin-grid div {
