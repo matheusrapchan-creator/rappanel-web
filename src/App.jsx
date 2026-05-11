@@ -573,6 +573,7 @@ function App() {
   const [apiStatus, setApiStatus] = useState("verificando");
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const isTvMode = useMemo(() => new URLSearchParams(window.location.search).get("tv") === "1", []);
 
   async function carregarDados(options = {}) {
     if (!options.silent) setLoading(true);
@@ -668,7 +669,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${isTvMode ? "tv-mode" : ""}`}>
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark">R</span>
@@ -733,7 +734,7 @@ function App() {
         </section>
 
         <section className="workspace-grid" id="agenda">
-          <AgendaForm onSaved={carregarDados} />
+          {!isTvMode && <AgendaForm onSaved={carregarDados} />}
           <AgendaList agenda={agendaFiltrada} />
         </section>
 

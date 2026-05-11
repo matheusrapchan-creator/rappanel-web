@@ -5,6 +5,144 @@
   background: #eef2f6;
 }
 
+.tv-mode {
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  background: #e9eef5;
+}
+
+.tv-mode .sidebar,
+.tv-mode .topbar-actions {
+  display: none;
+}
+
+.tv-mode .content-area {
+  gap: 28px;
+  padding: 34px 42px;
+}
+
+.tv-mode .topbar {
+  min-height: 74px;
+}
+
+.tv-mode h1 {
+  font-size: 46px;
+}
+
+.tv-mode h2 {
+  font-size: 26px;
+}
+
+.tv-mode .eyebrow,
+.tv-mode .section-title span:first-child,
+.tv-mode .metric-kicker {
+  font-size: 15px;
+}
+
+.tv-mode .metrics-grid {
+  gap: 18px;
+}
+
+.tv-mode .metric {
+  min-height: 156px;
+  padding: 24px;
+}
+
+.tv-mode .metric strong {
+  font-size: 42px;
+}
+
+.tv-mode .metric small {
+  font-size: 18px;
+}
+
+.tv-mode .panel {
+  padding: 26px;
+}
+
+.tv-mode .workspace-grid {
+  grid-template-columns: 1fr;
+}
+
+.tv-mode th {
+  font-size: 15px;
+}
+
+.tv-mode td {
+  font-size: 18px;
+}
+
+.tv-mode th,
+.tv-mode td {
+  padding: 16px 14px;
+}
+
+.tv-mode td strong,
+.tv-mode .client-row strong,
+.tv-mode .kanban-card strong {
+  font-size: 21px;
+}
+
+.tv-mode td small,
+.tv-mode .client-row small {
+  font-size: 16px;
+}
+
+.tv-mode .client-row {
+  min-height: 96px;
+  padding: 22px;
+}
+
+.tv-mode .client-quotes {
+  gap: 14px;
+  padding: 0 22px 22px;
+}
+
+.tv-mode .client-summary {
+  font-size: 18px;
+}
+
+.tv-mode .client-quotes-table table,
+.tv-mode .detail-table {
+  min-width: 0;
+}
+
+.tv-mode .quote-value b {
+  font-size: 24px;
+}
+
+.tv-mode .status {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 15px;
+}
+
+.tv-mode .margin-grid div {
+  min-height: 94px;
+  padding: 16px;
+}
+
+.tv-mode .margin-grid span {
+  font-size: 14px;
+}
+
+.tv-mode .margin-grid strong {
+  font-size: 24px;
+}
+
+.tv-mode .kanban-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tv-mode .kanban-column {
+  min-height: 230px;
+  padding: 18px;
+}
+
+.tv-mode .kanban-card {
+  padding: 14px;
+}
+
 .login-shell {
   display: grid;
   min-height: 100vh;
