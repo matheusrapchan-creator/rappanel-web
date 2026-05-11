@@ -5,6 +5,30 @@
   background: #eef2f6;
 }
 
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+  background: #101828;
+}
+
+.login-card {
+  display: grid;
+  gap: 16px;
+  width: min(420px, 100%);
+  padding: 22px;
+  border: 1px solid #243049;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+.login-brand {
+  margin-bottom: 4px;
+  color: #101828;
+}
+
 .sidebar {
   background: #101828;
   color: #ffffff;
@@ -237,7 +261,8 @@ textarea:focus {
 }
 
 .primary-button,
-.secondary-button {
+.secondary-button,
+.ghost-button {
   min-height: 42px;
   border: 0;
   border-radius: 8px;
@@ -257,6 +282,12 @@ textarea:focus {
   background: #101828;
   color: #ffffff;
   white-space: nowrap;
+}
+
+.ghost-button {
+  border: 1px solid #d7deea;
+  background: #ffffff;
+  color: #344054;
 }
 
 button:disabled {

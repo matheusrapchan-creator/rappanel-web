@@ -3,6 +3,8 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://api.raptech.com.br";
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || "";
+const PANEL_PASSWORD = import.meta.env.VITE_PANEL_PASSWORD || "";
+const ACCESS_KEY = "rappanel_device_access";
 
 const initialAgenda = {
   titulo: "",
@@ -154,6 +156,39 @@ function EmptyState({ title, caption }) {
       <strong>{title}</strong>
       <span>{caption}</span>
     </div>
+  );
+}
+
+function LoginScreen({ error, password, onPasswordChange, onSubmit }) {
+  return (
+    <main className="login-shell">
+      <form className="login-card" onSubmit={onSubmit}>
+        <div className="brand login-brand">
+          <span className="brand-mark">R</span>
+          <div>
+            <strong>RapPanel</strong>
+            <small>Acesso ao painel</small>
+          </div>
+        </div>
+
+        <label>
+          Senha de acesso
+          <input
+            autoFocus
+            type="password"
+            value={password}
+            onChange={(event) => onPasswordChange(event.target.value)}
+            placeholder="Digite a senha do painel"
+          />
+        </label>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <button className="primary-button" type="submit">
+          Entrar neste dispositivo
+        </button>
+      </form>
+    </main>
   );
 }
 
@@ -529,6 +564,9 @@ function KanbanPreview({ agenda, orcamentos }) {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !PANEL_PASSWORD || localStorage.getItem(ACCESS_KEY) === "granted");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [agenda, setAgenda] = useState([]);
   const [orcamentos, setOrcamentos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -536,8 +574,8 @@ function App() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  async function carregarDados() {
-    setLoading(true);
+  async function carregarDados(options = {}) {
+    if (!options.silent) setLoading(true);
     setError("");
 
     try {
@@ -554,15 +592,53 @@ function App() {
       setApiStatus("offline");
       setError(err.message || "Não foi possível carregar os dados da API.");
     } finally {
-      setLoading(false);
+      if (!options.silent) setLoading(false);
     }
   }
 
   useEffect(() => {
+    if (!isAuthenticated) return undefined;
+
     // Initial API sync when the panel opens.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     carregarDados();
-  }, []);
+
+    const intervalId = window.setInterval(() => {
+      carregarDados({ silent: true });
+    }, 30000);
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") {
+        carregarDados({ silent: true });
+      }
+    }
+
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [isAuthenticated]);
+
+  function handleLogin(event) {
+    event.preventDefault();
+
+    if (loginPassword === PANEL_PASSWORD) {
+      localStorage.setItem(ACCESS_KEY, "granted");
+      setIsAuthenticated(true);
+      setLoginError("");
+      setLoginPassword("");
+      return;
+    }
+
+    setLoginError("Senha inválida.");
+  }
+
+  function handleLogout() {
+    localStorage.removeItem(ACCESS_KEY);
+    setIsAuthenticated(!PANEL_PASSWORD);
+  }
 
   const agendaFiltrada = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -579,6 +655,17 @@ function App() {
   const clientesComOrcamento = useMemo(() => groupQuotesByClient(orcamentos).length, [orcamentos]);
   const valorAberto = orcamentos.reduce((total, item) => total + Number(moneyFromQuote(item) || 0), 0);
   const tarefasPendentes = agenda.filter((item) => !["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status))).length;
+
+  if (!isAuthenticated) {
+    return (
+      <LoginScreen
+        error={loginError}
+        password={loginPassword}
+        onPasswordChange={setLoginPassword}
+        onSubmit={handleLogin}
+      />
+    );
+  }
 
   return (
     <main className="app-shell">
@@ -617,6 +704,11 @@ function App() {
             <button className="secondary-button" onClick={carregarDados} disabled={loading}>
               {loading ? "Atualizando..." : "Atualizar"}
             </button>
+            {PANEL_PASSWORD && (
+              <button className="ghost-button" onClick={handleLogout} type="button">
+                Sair
+              </button>
+            )}
           </div>
         </header>
 
