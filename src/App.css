@@ -7,8 +7,10 @@
 
 .tv-mode {
   grid-template-columns: 1fr;
+  height: 100vh;
   min-height: 100vh;
   background: #e9eef5;
+  overflow: hidden;
 }
 
 .tv-mode .sidebar,
@@ -17,20 +19,30 @@
 }
 
 .tv-mode .content-area {
-  gap: 28px;
-  padding: 34px 42px;
+  display: grid;
+  grid-template-columns: 1fr 1.35fr 0.9fr;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "topbar topbar topbar"
+    "metrics metrics metrics"
+    "agenda orcamentos kanban";
+  gap: 14px;
+  height: 100vh;
+  overflow: hidden;
+  padding: 18px 22px;
 }
 
 .tv-mode .topbar {
-  min-height: 74px;
+  grid-area: topbar;
+  min-height: 52px;
 }
 
 .tv-mode h1 {
-  font-size: 46px;
+  font-size: 34px;
 }
 
 .tv-mode h2 {
-  font-size: 26px;
+  font-size: 20px;
 }
 
 .tv-mode .eyebrow,
@@ -40,66 +52,107 @@
 }
 
 .tv-mode .metrics-grid {
-  gap: 18px;
+  grid-area: metrics;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .tv-mode .metric {
-  min-height: 156px;
-  padding: 24px;
+  min-height: 104px;
+  padding: 14px;
 }
 
 .tv-mode .metric strong {
-  font-size: 42px;
+  font-size: 30px;
 }
 
 .tv-mode .metric small {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .tv-mode .panel {
-  padding: 26px;
+  height: 100%;
+  overflow: hidden;
+  padding: 14px;
 }
 
 .tv-mode .workspace-grid {
+  grid-area: agenda;
   grid-template-columns: 1fr;
+  min-height: 0;
+}
+
+.tv-mode #agenda,
+.tv-mode #orcamentos,
+.tv-mode #kanban {
+  min-height: 0;
+}
+
+.tv-mode #orcamentos {
+  grid-area: orcamentos;
+}
+
+.tv-mode #kanban {
+  grid-area: kanban;
+}
+
+.tv-mode .section-title {
+  margin-bottom: 10px;
+}
+
+.tv-mode .section-icon {
+  min-width: 30px;
+  height: 30px;
+}
+
+.tv-mode .table-wrapper,
+.tv-mode .client-quotes-table,
+.tv-mode .detail-table-wrapper {
+  overflow: hidden;
+}
+
+.tv-mode table,
+.tv-mode .client-quotes-table table,
+.tv-mode .detail-table {
+  min-width: 0;
 }
 
 .tv-mode th {
-  font-size: 15px;
+  font-size: 11px;
 }
 
 .tv-mode td {
-  font-size: 18px;
+  font-size: 13px;
 }
 
 .tv-mode th,
 .tv-mode td {
-  padding: 16px 14px;
+  padding: 8px 7px;
 }
 
 .tv-mode td strong,
 .tv-mode .client-row strong,
 .tv-mode .kanban-card strong {
-  font-size: 21px;
+  font-size: 15px;
 }
 
 .tv-mode td small,
 .tv-mode .client-row small {
-  font-size: 16px;
+  font-size: 12px;
 }
 
 .tv-mode .client-row {
-  min-height: 96px;
-  padding: 22px;
+  min-height: 58px;
+  padding: 10px;
 }
 
 .tv-mode .client-quotes {
-  gap: 14px;
-  padding: 0 22px 22px;
+  gap: 8px;
+  padding: 0 10px 10px;
 }
 
 .tv-mode .client-summary {
-  font-size: 18px;
+  font-size: 13px;
 }
 
 .tv-mode .client-quotes-table table,
@@ -108,39 +161,54 @@
 }
 
 .tv-mode .quote-value b {
-  font-size: 24px;
-}
-
-.tv-mode .status {
-  min-height: 32px;
-  padding: 0 12px;
   font-size: 15px;
 }
 
+.tv-mode .status {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
 .tv-mode .margin-grid div {
-  min-height: 94px;
-  padding: 16px;
+  min-height: 58px;
+  padding: 8px;
 }
 
 .tv-mode .margin-grid span {
-  font-size: 14px;
+  font-size: 10px;
 }
 
 .tv-mode .margin-grid strong {
-  font-size: 24px;
+  font-size: 15px;
 }
 
 .tv-mode .kanban-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .tv-mode .kanban-column {
-  min-height: 230px;
-  padding: 18px;
+  min-height: 0;
+  padding: 10px;
 }
 
 .tv-mode .kanban-card {
-  padding: 14px;
+  padding: 8px;
+}
+
+.tv-mode .kanban-card:nth-of-type(n + 4) {
+  display: none;
+}
+
+.tv-mode .client-group:nth-child(n + 6),
+.tv-mode .table-wrapper tbody tr:nth-child(n + 6) {
+  display: none;
+}
+
+.tv-mode .quote-detail-row,
+.tv-mode .client-quotes {
+  display: none;
 }
 
 .login-shell {
