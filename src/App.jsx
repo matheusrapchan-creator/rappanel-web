@@ -77,6 +77,10 @@ function moneyFromQuote(item) {
   return item.valor_venda || item.valor || item.total || item.preco || 0;
 }
 
+function isAgendaHistory(item) {
+  return ["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status));
+}
+
 function formatGeneration(value) {
   if (!value) return "-";
   return `${Number(value).toLocaleString("pt-BR")} kWh/mês`;
@@ -317,13 +321,13 @@ function AgendaForm({ onSaved }) {
   );
 }
 
-function AgendaList({ agenda }) {
+function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação", emptyTitle = "Nenhum compromisso encontrado", emptyCaption = "Cadastre o primeiro item para acompanhar a operação por aqui." }) {
   return (
     <section className="panel table-panel">
       <div className="section-title">
         <div>
-          <span>Operação</span>
-          <h2>Lista de agenda</h2>
+          <span>{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
         <span className="section-icon">A</span>
       </div>
@@ -360,8 +364,8 @@ function AgendaList({ agenda }) {
 
       {!agenda.length && (
         <EmptyState
-          title="Nenhum compromisso encontrado"
-          caption="Cadastre o primeiro item para acompanhar a operação por aqui."
+          title={emptyTitle}
+          caption={emptyCaption}
         />
       )}
     </section>
@@ -653,6 +657,9 @@ function App() {
     return agenda.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
   }, [agenda, search]);
 
+  const agendaAtiva = useMemo(() => agendaFiltrada.filter((item) => !isAgendaHistory(item)), [agendaFiltrada]);
+  const historicoAgenda = useMemo(() => agendaFiltrada.filter(isAgendaHistory), [agendaFiltrada]);
+
   const orcamentosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return orcamentos;
@@ -665,8 +672,6 @@ function App() {
   const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
   const clientesComOrcamento = clientesAgrupados.length;
   const valorAberto = clientesAgrupados.reduce((total, cliente) => total + cliente.average, 0);
-  const tarefasPendentes = agenda.filter((item) => !["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status))).length;
-
   if (!isAuthenticated) {
     return (
       <LoginScreen
@@ -692,6 +697,7 @@ function App() {
         <nav className="nav-list" aria-label="Navegação principal">
           <a href="#dashboard" className="active">Dashboard</a>
           <a href="#agenda">Agenda</a>
+          <a href="#historico-agenda">Histórico</a>
           <a href="#orcamentos">Orçamentos</a>
           <a href="#kanban">Kanban</a>
         </nav>
@@ -738,15 +744,27 @@ function App() {
             caption={API_URL}
             accent={apiStatus === "online" ? "green" : "red"}
           />
-          <MetricCard label="Agenda" value={agenda.length} caption={`${tarefasPendentes} pendentes`} accent="blue" />
+          <MetricCard label="Agenda" value={agendaAtiva.length} caption={`${historicoAgenda.length} no histórico`} accent="blue" />
           <MetricCard label="Clientes" value={clientesComOrcamento} caption={`${orcamentos.length} orçamentos enviados`} accent="purple" />
           <MetricCard label="Valor em orçamento" value={formatCurrency(valorAberto)} caption="média por cliente" accent="amber" />
         </section>
 
         <section className="workspace-grid" id="agenda">
           {!isTvMode && <AgendaForm onSaved={carregarDados} />}
-          <AgendaList agenda={isTvMode ? agendaFiltrada.slice(0, 15) : agendaFiltrada} />
+          <AgendaList agenda={isTvMode ? agendaAtiva.slice(0, 15) : agendaAtiva} />
         </section>
+
+        {!isTvMode && (
+          <section id="historico-agenda">
+            <AgendaList
+              agenda={historicoAgenda}
+              eyebrow="Histórico"
+              title="Histórico da agenda"
+              emptyTitle="Nenhum item no histórico"
+              emptyCaption="Compromissos concluídos ou cancelados serão mantidos aqui."
+            />
+          </section>
+        )}
 
         <section id="orcamentos">
           <OrcamentosList orcamentos={isTvMode ? orcamentosEmAberto : orcamentosFiltrados} />
