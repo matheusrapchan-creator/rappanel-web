@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || "https://api.raptech.com.br";
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || "";
 const PANEL_PASSWORD = import.meta.env.VITE_PANEL_PASSWORD || "";
 const ACCESS_KEY = "rappanel_device_access";
+const PROJECT_FINISHED_STATUS = "finalizado";
 
 const initialAgenda = {
   titulo: "",
@@ -24,6 +25,17 @@ const statusMap = {
   "em andamento": { label: "Em andamento", tone: "purple" },
   em_andamento: { label: "Em andamento", tone: "purple" },
   aprovado: { label: "Aprovado", tone: "green" },
+  fechado: { label: "Fechado", tone: "green" },
+  "aguardando documentação": { label: "Aguardando documentação", tone: "amber" },
+  "aguardando documentacao": { label: "Aguardando documentação", tone: "amber" },
+  "aguardando assinatura": { label: "Aguardando assinatura", tone: "amber" },
+  "aguardando dados técnicos": { label: "Aguardando dados técnicos", tone: "purple" },
+  "aguardando dados tecnicos": { label: "Aguardando dados técnicos", tone: "purple" },
+  "pronto para fazer": { label: "Pronto para fazer", tone: "blue" },
+  "enviado concessionaria": { label: "Enviado concessionária", tone: "purple" },
+  "enviado concessionária": { label: "Enviado concessionária", tone: "purple" },
+  "aguardando vistoria": { label: "Aguardando vistoria", tone: "amber" },
+  finalizado: { label: "Finalizado", tone: "green" },
   concluido: { label: "Concluído", tone: "green" },
   "concluído": { label: "Concluído", tone: "green" },
   cancelado: { label: "Cancelado", tone: "red" },
@@ -79,6 +91,14 @@ function moneyFromQuote(item) {
 
 function isAgendaHistory(item) {
   return ["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status));
+}
+
+function isQuoteClosed(item) {
+  return ["fechado", "aprovado", "concluído", "concluido", "cancelado", "recusado"].includes(normalizeStatus(item.status));
+}
+
+function isProjectFinished(item) {
+  return normalizeStatus(item.status) === PROJECT_FINISHED_STATUS;
 }
 
 function formatGeneration(value) {
@@ -372,10 +392,27 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
   );
 }
 
-function OrcamentosList({ orcamentos }) {
+function OrcamentosList({ orcamentos, onCloseQuote }) {
   const [expandedClient, setExpandedClient] = useState("");
   const [expandedQuote, setExpandedQuote] = useState("");
+  const [closingQuote, setClosingQuote] = useState("");
+  const [actionError, setActionError] = useState("");
   const clientes = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
+
+  async function handleCloseQuote(item) {
+    if (!onCloseQuote || !item.id) return;
+
+    setClosingQuote(String(item.id));
+    setActionError("");
+
+    try {
+      await onCloseQuote(item);
+    } catch (err) {
+      setActionError(err.message || "Não foi possível fechar este orçamento como projeto.");
+    } finally {
+      setClosingQuote("");
+    }
+  }
 
   return (
     <section className="panel">
@@ -501,6 +538,19 @@ function OrcamentosList({ orcamentos }) {
                                         </tbody>
                                       </table>
                                     </div>
+
+                                    {onCloseQuote && !isQuoteClosed(item) && (
+                                      <div className="quote-actions">
+                                        <button
+                                          className="primary-button compact-button"
+                                          type="button"
+                                          disabled={closingQuote === String(item.id)}
+                                          onClick={() => handleCloseQuote(item)}
+                                        >
+                                          {closingQuote === String(item.id) ? "Fechando..." : "Fechar projeto com este orçamento"}
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -517,10 +567,51 @@ function OrcamentosList({ orcamentos }) {
         ))}
       </div>
 
+      {actionError && <div className="error-message">{actionError}</div>}
+
       {!clientes.length && (
         <EmptyState
           title="Nenhum orçamento encontrado"
           caption="Os orçamentos criados na API vão aparecer nesta área."
+        />
+      )}
+    </section>
+  );
+}
+
+function ProjetosList({ projetos, title = "Projetos fechados", eyebrow = "Implantação", emptyTitle = "Nenhum projeto fechado", emptyCaption = "Quando um orçamento for fechado, o projeto aparecerá nesta área." }) {
+  return (
+    <section className="panel project-panel">
+      <div className="section-title">
+        <div>
+          <span>{eyebrow}</span>
+          <h2>{title}</h2>
+        </div>
+        <span className="section-icon">P</span>
+      </div>
+
+      <div className="project-list">
+        {projetos.map((projeto) => (
+          <article className="project-row" key={projeto.id || `${projeto.cliente}-${projeto.orcamento_id}`}>
+            <div>
+              <strong>{projeto.cliente || "Cliente sem nome"}</strong>
+              <small>
+                Orçamento #{projeto.orcamento_id || "-"}
+                {projeto.observacao ? ` · ${projeto.observacao}` : ""}
+              </small>
+            </div>
+            <div className="project-status">
+              <StatusBadge status={projeto.status} />
+              <small>{formatDate({ data: projeto.atualizado_em || projeto.criado_em })}</small>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {!projetos.length && (
+        <EmptyState
+          title={emptyTitle}
+          caption={emptyCaption}
         />
       )}
     </section>
@@ -579,6 +670,7 @@ function App() {
   const [loginError, setLoginError] = useState("");
   const [agenda, setAgenda] = useState([]);
   const [orcamentos, setOrcamentos] = useState([]);
+  const [projetos, setProjetos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiStatus, setApiStatus] = useState("verificando");
   const [error, setError] = useState("");
@@ -590,15 +682,17 @@ function App() {
     setError("");
 
     try {
-      const [healthPayload, agendaPayload, orcamentosPayload] = await Promise.all([
+      const [healthPayload, agendaPayload, orcamentosPayload, projetosPayload] = await Promise.all([
         requestApi("/health").catch(() => null),
         requestApi("/agenda"),
         requestApi("/orcamentos"),
+        requestApi("/projetos").catch(() => []),
       ]);
 
       setApiStatus(healthPayload ? "online" : "offline");
       setAgenda(toArray(agendaPayload));
       setOrcamentos(toArray(orcamentosPayload));
+      setProjetos(toArray(projetosPayload));
     } catch (err) {
       setApiStatus("offline");
       setError(err.message || "Não foi possível carregar os dados da API.");
@@ -651,6 +745,18 @@ function App() {
     setIsAuthenticated(!PANEL_PASSWORD);
   }
 
+  async function fecharOrcamentoComoProjeto(orcamento) {
+    await requestApi(`/orcamentos/${orcamento.id}/fechar`, {
+      method: "POST",
+      body: JSON.stringify({
+        status: "aguardando documentação",
+        observacao: `Projeto fechado a partir do orçamento #${orcamento.id}`,
+      }),
+    });
+
+    await carregarDados({ silent: true });
+  }
+
   const agendaFiltrada = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return agenda;
@@ -666,10 +772,18 @@ function App() {
     return orcamentos.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
   }, [orcamentos, search]);
 
+  const projetosFiltrados = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return projetos;
+    return projetos.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
+  }, [projetos, search]);
+
   const orcamentosEmAberto = useMemo(() => (
-    orcamentosFiltrados.filter((item) => !["aprovado", "concluído", "concluido", "cancelado", "recusado"].includes(normalizeStatus(item.status)))
+    orcamentosFiltrados.filter((item) => !isQuoteClosed(item))
   ), [orcamentosFiltrados]);
-  const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentos), [orcamentos]);
+  const projetosAtivos = useMemo(() => projetosFiltrados.filter((item) => !isProjectFinished(item)), [projetosFiltrados]);
+  const projetosFinalizados = useMemo(() => projetosFiltrados.filter(isProjectFinished), [projetosFiltrados]);
+  const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentosEmAberto), [orcamentosEmAberto]);
   const clientesComOrcamento = clientesAgrupados.length;
   const valorAberto = clientesAgrupados.reduce((total, cliente) => total + cliente.average, 0);
   if (!isAuthenticated) {
@@ -699,6 +813,8 @@ function App() {
           <a href="#agenda">Agenda</a>
           <a href="#historico-agenda">Histórico</a>
           <a href="#orcamentos">Orçamentos</a>
+          <a href="#projetos">Projetos</a>
+          <a href="#projetos-finalizados">Finalizados</a>
           <a href="#kanban">Kanban</a>
         </nav>
       </aside>
@@ -745,7 +861,8 @@ function App() {
             accent={apiStatus === "online" ? "green" : "red"}
           />
           <MetricCard label="Agenda" value={agendaAtiva.length} caption={`${historicoAgenda.length} no histórico`} accent="blue" />
-          <MetricCard label="Clientes" value={clientesComOrcamento} caption={`${orcamentos.length} orçamentos enviados`} accent="purple" />
+          <MetricCard label="Orçamentos abertos" value={clientesComOrcamento} caption={`${orcamentosEmAberto.length} opções em negociação`} accent="purple" />
+          <MetricCard label="Projetos" value={projetosAtivos.length} caption={`${projetosFinalizados.length} finalizados`} accent="green" />
           <MetricCard label="Valor em orçamento" value={formatCurrency(valorAberto)} caption="média por cliente" accent="amber" />
         </section>
 
@@ -767,8 +884,27 @@ function App() {
         )}
 
         <section id="orcamentos">
-          <OrcamentosList orcamentos={isTvMode ? orcamentosEmAberto : orcamentosFiltrados} />
+          <OrcamentosList
+            orcamentos={orcamentosEmAberto}
+            onCloseQuote={isTvMode ? null : fecharOrcamentoComoProjeto}
+          />
         </section>
+
+        <section id="projetos">
+          <ProjetosList projetos={projetosAtivos} />
+        </section>
+
+        {!isTvMode && (
+          <section id="projetos-finalizados">
+            <ProjetosList
+              projetos={projetosFinalizados}
+              eyebrow="Histórico"
+              title="Projetos finalizados"
+              emptyTitle="Nenhum projeto finalizado"
+              emptyCaption="Projetos com status finalizado serão mantidos aqui."
+            />
+          </section>
+        )}
 
         {!isTvMode && (
           <section id="kanban">

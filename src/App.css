@@ -20,12 +20,12 @@
 
 .tv-mode .content-area {
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
+  grid-template-columns: 1.05fr 1fr 0.9fr;
   grid-template-rows: 30px 46px minmax(0, 1fr);
   grid-template-areas:
-    "topbar topbar"
-    "metrics metrics"
-    "agenda orcamentos";
+    "topbar topbar topbar"
+    "metrics metrics metrics"
+    "agenda orcamentos projetos";
   gap: 8px;
   height: 100vh;
   overflow: hidden;
@@ -101,6 +101,11 @@
   grid-area: orcamentos;
 }
 
+.tv-mode #projetos {
+  grid-area: projetos;
+  min-height: 0;
+}
+
 .tv-mode .section-title {
   margin-bottom: 4px;
 }
@@ -170,6 +175,16 @@
 .tv-mode .client-row {
   min-height: 36px;
   padding: 5px 8px;
+}
+
+.tv-mode .project-row {
+  min-height: 36px;
+  padding: 6px 8px;
+}
+
+.tv-mode .project-row small,
+.tv-mode .project-status small {
+  display: none;
 }
 
 .tv-mode .client-row small {
@@ -404,7 +419,7 @@ h2 {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -545,6 +560,12 @@ textarea:focus {
   margin-top: 12px;
   background: #20b486;
   color: #061510;
+}
+
+.compact-button {
+  width: auto;
+  min-height: 36px;
+  margin-top: 0;
 }
 
 .secondary-button {
@@ -737,6 +758,11 @@ td small {
   border-bottom: 1px solid #edf1f6;
 }
 
+.quote-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .margin-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -810,6 +836,40 @@ td small {
 }
 
 .quote-value {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.project-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 70px;
+  padding: 12px;
+  border: 1px solid #edf1f6;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.project-row strong,
+.project-row small {
+  display: block;
+}
+
+.project-row small,
+.project-status small {
+  color: #667085;
+}
+
+.project-status {
   display: grid;
   justify-items: end;
   gap: 6px;
@@ -1004,7 +1064,16 @@ td small {
     flex-direction: column;
   }
 
+  .project-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .quote-value {
+    justify-items: start;
+  }
+
+  .project-status {
     justify-items: start;
   }
 
