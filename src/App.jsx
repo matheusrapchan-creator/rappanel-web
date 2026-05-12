@@ -392,7 +392,14 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
   );
 }
 
-function OrcamentosList({ orcamentos, onCloseQuote }) {
+function OrcamentosList({
+  orcamentos,
+  onCloseQuote,
+  title = "Clientes e orçamentos",
+  eyebrow = "Comercial",
+  emptyTitle = "Nenhum orçamento encontrado",
+  emptyCaption = "Os orçamentos criados na API vão aparecer nesta área.",
+}) {
   const [expandedClient, setExpandedClient] = useState("");
   const [expandedQuote, setExpandedQuote] = useState("");
   const [closingQuote, setClosingQuote] = useState("");
@@ -418,8 +425,8 @@ function OrcamentosList({ orcamentos, onCloseQuote }) {
     <section className="panel">
       <div className="section-title">
         <div>
-          <span>Comercial</span>
-          <h2>Clientes e orçamentos</h2>
+          <span>{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
         <span className="section-icon">R$</span>
       </div>
@@ -571,8 +578,8 @@ function OrcamentosList({ orcamentos, onCloseQuote }) {
 
       {!clientes.length && (
         <EmptyState
-          title="Nenhum orçamento encontrado"
-          caption="Os orçamentos criados na API vão aparecer nesta área."
+          title={emptyTitle}
+          caption={emptyCaption}
         />
       )}
     </section>
@@ -781,6 +788,9 @@ function App() {
   const orcamentosEmAberto = useMemo(() => (
     orcamentosFiltrados.filter((item) => !isQuoteClosed(item))
   ), [orcamentosFiltrados]);
+  const orcamentosFechados = useMemo(() => (
+    orcamentosFiltrados.filter(isQuoteClosed)
+  ), [orcamentosFiltrados]);
   const projetosAtivos = useMemo(() => projetosFiltrados.filter((item) => !isProjectFinished(item)), [projetosFiltrados]);
   const projetosFinalizados = useMemo(() => projetosFiltrados.filter(isProjectFinished), [projetosFiltrados]);
   const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentosEmAberto), [orcamentosEmAberto]);
@@ -813,6 +823,7 @@ function App() {
           <a href="#agenda">Agenda</a>
           <a href="#historico-agenda">Histórico</a>
           <a href="#orcamentos">Orçamentos</a>
+          <a href="#orcamentos-fechados">Fechados</a>
           <a href="#projetos">Projetos</a>
           <a href="#projetos-finalizados">Finalizados</a>
           <a href="#kanban">Kanban</a>
@@ -889,6 +900,18 @@ function App() {
             onCloseQuote={isTvMode ? null : fecharOrcamentoComoProjeto}
           />
         </section>
+
+        {!isTvMode && (
+          <section id="orcamentos-fechados">
+            <OrcamentosList
+              orcamentos={orcamentosFechados}
+              title="Orçamentos fechados"
+              eyebrow="Histórico comercial"
+              emptyTitle="Nenhum orçamento fechado"
+              emptyCaption="Quando uma proposta virar projeto, ela ficará disponível aqui para consulta."
+            />
+          </section>
+        )}
 
         <section id="projetos">
           <ProjetosList projetos={projetosAtivos} />
