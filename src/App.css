@@ -57,19 +57,20 @@
 
 .tv-mode .metrics-grid {
   grid-area: metrics;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .tv-mode .metric {
   min-height: 0;
-  padding: 5px 8px;
+  padding: 4px 6px;
   border-top-width: 3px;
   gap: 1px;
 }
 
 .tv-mode .metric strong {
-  font-size: 18px;
+  font-size: 16px;
+  white-space: nowrap;
 }
 
 .tv-mode .metric small {
