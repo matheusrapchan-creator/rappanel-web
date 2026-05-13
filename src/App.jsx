@@ -51,6 +51,14 @@ function normalizeStatus(status) {
   return String(status || "novo").trim().toLowerCase();
 }
 
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function statusInfo(status) {
   return statusMap[normalizeStatus(status)] || {
     label: status || "Novo",
@@ -96,6 +104,19 @@ function moneyFromQuote(item) {
 
 function isAgendaHistory(item) {
   return ["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status));
+}
+
+function isPresidentePrudenteAgenda(item) {
+  const searchable = [
+    item.cidade,
+    item.endereco,
+    item.observacao,
+    item.proxima_acao,
+    item.titulo,
+    item.cliente,
+  ].join(" ");
+
+  return normalizeText(searchable).includes("presidente prudente");
 }
 
 function isQuoteClosed(item) {
@@ -360,6 +381,17 @@ function AgendaForm({ onSaved }) {
 }
 
 function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação", emptyTitle = "Nenhum compromisso encontrado", emptyCaption = "Cadastre o primeiro item para acompanhar a operação por aqui." }) {
+  const grupos = [
+    {
+      title: "Presidente Prudente",
+      items: agenda.filter(isPresidentePrudenteAgenda),
+    },
+    {
+      title: "Outras cidades",
+      items: agenda.filter((item) => !isPresidentePrudenteAgenda(item)),
+    },
+  ];
+
   return (
     <section className="panel table-panel">
       <div className="section-title">
@@ -376,25 +408,32 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
             <tr>
               <th>Compromisso</th>
               <th>Cliente</th>
-              <th>Responsável</th>
               <th>Quando</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {agenda.map((item, index) => (
-              <tr key={item.id || `${item.titulo}-${index}`}>
-                <td>
-                  <strong>{item.titulo || "Compromisso"}</strong>
-                  <small>{item.observacao || item.tipo || "Sem observação"}</small>
-                </td>
-                <td data-label="Cliente">{item.cliente || "-"}</td>
-                <td data-label="Responsável">{item.responsavel || "-"}</td>
-                <td data-label="Quando">{formatDate(item)}</td>
-                <td data-label="Status">
-                  <StatusBadge status={item.status} />
-                </td>
-              </tr>
+            {grupos.map((grupo) => (
+              grupo.items.length ? (
+                <Fragment key={grupo.title}>
+                  <tr className="agenda-group-row">
+                    <td colSpan="4">{grupo.title}</td>
+                  </tr>
+                  {grupo.items.map((item, index) => (
+                    <tr key={item.id || `${item.titulo}-${grupo.title}-${index}`}>
+                      <td>
+                        <strong>{item.titulo || "Compromisso"}</strong>
+                        <small>{item.observacao || item.endereco || item.tipo || "Sem observação"}</small>
+                      </td>
+                      <td data-label="Cliente">{item.cliente || "-"}</td>
+                      <td data-label="Quando">{formatDate(item)}</td>
+                      <td data-label="Status">
+                        <StatusBadge status={item.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
+              ) : null
             ))}
           </tbody>
         </table>
