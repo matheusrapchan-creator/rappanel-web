@@ -877,6 +877,16 @@ td small {
   white-space: nowrap;
 }
 
+.stock-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 18px;
+}
+
+.stock-warning {
+  margin-bottom: 12px;
+}
+
 .kanban-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -972,6 +982,10 @@ td small {
   }
 
   .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stock-layout {
     grid-template-columns: 1fr;
   }
 }

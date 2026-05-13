@@ -21,6 +21,7 @@ const initialAgenda = {
 const statusMap = {
   agendado: { label: "Agendado", tone: "blue" },
   novo: { label: "Novo", tone: "blue" },
+  ok: { label: "OK", tone: "green" },
   pendente: { label: "Pendente", tone: "amber" },
   "em andamento": { label: "Em andamento", tone: "purple" },
   em_andamento: { label: "Em andamento", tone: "purple" },
@@ -36,6 +37,10 @@ const statusMap = {
   "enviado concessionária": { label: "Enviado concessionária", tone: "purple" },
   "aguardando vistoria": { label: "Aguardando vistoria", tone: "amber" },
   finalizado: { label: "Finalizado", tone: "green" },
+  entrada: { label: "Entrada", tone: "green" },
+  saida: { label: "Saída", tone: "red" },
+  saída: { label: "Saída", tone: "red" },
+  ajuste: { label: "Ajuste", tone: "blue" },
   concluido: { label: "Concluído", tone: "green" },
   "concluído": { label: "Concluído", tone: "green" },
   cancelado: { label: "Cancelado", tone: "red" },
@@ -99,6 +104,19 @@ function isQuoteClosed(item) {
 
 function isProjectFinished(item) {
   return normalizeStatus(item.status) === PROJECT_FINISHED_STATUS;
+}
+
+function stockQuantity(item) {
+  return Number(item.quantidade_atual ?? item.quantidade ?? item.saldo ?? 0);
+}
+
+function stockUnit(item) {
+  return item.unidade || "un";
+}
+
+function isLowStock(item) {
+  const minimum = Number(item.estoque_minimo ?? item.minimo ?? 0);
+  return minimum > 0 && stockQuantity(item) <= minimum;
 }
 
 function formatGeneration(value) {
@@ -625,6 +643,110 @@ function ProjetosList({ projetos, title = "Projetos fechados", eyebrow = "Implan
   );
 }
 
+function EstoquePage({ itens, movimentacoes }) {
+  const baixoEstoque = itens.filter(isLowStock);
+
+  return (
+    <section className="stock-layout" id="estoque">
+      <section className="panel table-panel">
+        <div className="section-title">
+          <div>
+            <span>Estoque</span>
+            <h2>Controle de estoque</h2>
+          </div>
+          <span className="section-icon">E</span>
+        </div>
+
+        {baixoEstoque.length > 0 && (
+          <div className="notice warning stock-warning">
+            {baixoEstoque.length} item{baixoEstoque.length > 1 ? "s" : ""} abaixo ou no estoque mínimo.
+          </div>
+        )}
+
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Categoria</th>
+                <th>Saldo</th>
+                <th>Mínimo</th>
+                <th>Local</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itens.map((item) => (
+                <tr key={item.id || item.nome}>
+                  <td>
+                    <strong>{item.nome || "Item sem nome"}</strong>
+                    <small>{item.observacao || item.descricao || "Sem observação"}</small>
+                  </td>
+                  <td data-label="Categoria">{item.categoria || "-"}</td>
+                  <td data-label="Saldo">
+                    {stockQuantity(item).toLocaleString("pt-BR")} {stockUnit(item)}
+                  </td>
+                  <td data-label="Mínimo">
+                    {Number(item.estoque_minimo ?? item.minimo ?? 0).toLocaleString("pt-BR")} {stockUnit(item)}
+                  </td>
+                  <td data-label="Local">{item.localizacao || item.local || "-"}</td>
+                  <td data-label="Status">
+                    <StatusBadge status={isLowStock(item) ? "pendente" : "ok"} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {!itens.length && (
+          <EmptyState
+            title="Nenhum item de estoque"
+            caption="Os itens cadastrados pela skill aparecerão aqui."
+          />
+        )}
+      </section>
+
+      <section className="panel project-panel">
+        <div className="section-title">
+          <div>
+            <span>Movimentações</span>
+            <h2>Últimas entradas e saídas</h2>
+          </div>
+          <span className="section-icon">M</span>
+        </div>
+
+        <div className="project-list">
+          {movimentacoes.slice(0, 12).map((movimento) => (
+            <article className="project-row" key={movimento.id || `${movimento.produto_id}-${movimento.criado_em}`}>
+              <div>
+                <strong>{movimento.nome || movimento.produto_nome || `Item #${movimento.produto_id || "-"}`}</strong>
+                <small>
+                  {movimento.motivo || movimento.observacao || "Sem observação"}
+                  {movimento.projeto_id ? ` · Projeto #${movimento.projeto_id}` : ""}
+                </small>
+              </div>
+              <div className="project-status">
+                <StatusBadge status={movimento.tipo || "novo"} />
+                <small>
+                  {Number(movimento.quantidade || 0).toLocaleString("pt-BR")} {movimento.unidade || ""}
+                </small>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {!movimentacoes.length && (
+          <EmptyState
+            title="Nenhuma movimentação"
+            caption="Entradas e saídas registradas pela skill aparecerão aqui."
+          />
+        )}
+      </section>
+    </section>
+  );
+}
+
 function KanbanPreview({ agenda, orcamentos }) {
   const columns = [
     {
@@ -678,6 +800,8 @@ function App() {
   const [agenda, setAgenda] = useState([]);
   const [orcamentos, setOrcamentos] = useState([]);
   const [projetos, setProjetos] = useState([]);
+  const [estoque, setEstoque] = useState([]);
+  const [movimentacoesEstoque, setMovimentacoesEstoque] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiStatus, setApiStatus] = useState("verificando");
   const [error, setError] = useState("");
@@ -689,17 +813,21 @@ function App() {
     setError("");
 
     try {
-      const [healthPayload, agendaPayload, orcamentosPayload, projetosPayload] = await Promise.all([
+      const [healthPayload, agendaPayload, orcamentosPayload, projetosPayload, estoquePayload, movimentacoesPayload] = await Promise.all([
         requestApi("/health").catch(() => null),
         requestApi("/agenda"),
         requestApi("/orcamentos"),
         requestApi("/projetos").catch(() => []),
+        requestApi("/estoque").catch(() => []),
+        requestApi("/estoque/movimentacoes").catch(() => []),
       ]);
 
       setApiStatus(healthPayload ? "online" : "offline");
       setAgenda(toArray(agendaPayload));
       setOrcamentos(toArray(orcamentosPayload));
       setProjetos(toArray(projetosPayload));
+      setEstoque(toArray(estoquePayload));
+      setMovimentacoesEstoque(toArray(movimentacoesPayload));
     } catch (err) {
       setApiStatus("offline");
       setError(err.message || "Não foi possível carregar os dados da API.");
@@ -785,6 +913,18 @@ function App() {
     return projetos.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
   }, [projetos, search]);
 
+  const estoqueFiltrado = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return estoque;
+    return estoque.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
+  }, [estoque, search]);
+
+  const movimentacoesFiltradas = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return movimentacoesEstoque;
+    return movimentacoesEstoque.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
+  }, [movimentacoesEstoque, search]);
+
   const orcamentosEmAberto = useMemo(() => (
     orcamentosFiltrados.filter((item) => !isQuoteClosed(item))
   ), [orcamentosFiltrados]);
@@ -826,6 +966,7 @@ function App() {
           <a href="#orcamentos-fechados">Fechados</a>
           <a href="#projetos">Projetos</a>
           <a href="#projetos-finalizados">Finalizados</a>
+          <a href="#estoque">Estoque</a>
           <a href="#kanban">Kanban</a>
         </nav>
       </aside>
@@ -927,6 +1068,13 @@ function App() {
               emptyCaption="Projetos com status finalizado serão mantidos aqui."
             />
           </section>
+        )}
+
+        {!isTvMode && (
+          <EstoquePage
+            itens={estoqueFiltrado}
+            movimentacoes={movimentacoesFiltradas}
+          />
         )}
 
         {!isTvMode && (
