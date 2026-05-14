@@ -402,7 +402,7 @@ function AgendaForm({ onSaved }) {
   );
 }
 
-function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação", emptyTitle = "Nenhum compromisso encontrado", emptyCaption = "Cadastre o primeiro item para acompanhar a operação por aqui." }) {
+function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação", emptyTitle = "Nenhum compromisso encontrado", emptyCaption = "Cadastre o primeiro item para acompanhar a operação por aqui.", showResponsible = false }) {
   const grupos = [
     {
       title: "Presidente Prudente",
@@ -430,6 +430,7 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
             <tr>
               <th>Compromisso</th>
               <th>Cliente</th>
+              {showResponsible && <th>Responsável</th>}
               <th>Quando</th>
               <th>Status</th>
             </tr>
@@ -439,7 +440,7 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
               grupo.items.length ? (
                 <Fragment key={grupo.title}>
                   <tr className="agenda-group-row">
-                    <td colSpan="4">{grupo.title}</td>
+                    <td colSpan={showResponsible ? 5 : 4}>{grupo.title}</td>
                   </tr>
                   {grupo.items.map((item, index) => (
                     <tr key={item.id || `${item.titulo}-${grupo.title}-${index}`}>
@@ -448,6 +449,7 @@ function AgendaList({ agenda, title = "Lista de agenda", eyebrow = "Operação",
                         <small>{item.observacao || item.endereco || item.tipo || "Sem observação"}</small>
                       </td>
                       <td data-label="Cliente">{item.cliente || "-"}</td>
+                      {showResponsible && <td data-label="Responsável">{item.responsavel || "-"}</td>}
                       <td data-label="Quando">{formatDate(item)}</td>
                       <td data-label="Status">
                         <StatusBadge status={item.status} />
@@ -1287,7 +1289,7 @@ function App() {
 
         <section className="workspace-grid" id="agenda">
           {!isTvMode && <AgendaForm onSaved={carregarDados} />}
-          <AgendaList agenda={isTvMode ? agendaAtiva.slice(0, 15) : agendaAtiva} />
+          <AgendaList agenda={isTvMode ? agendaAtiva.slice(0, 15) : agendaAtiva} showResponsible={isTvMode} />
         </section>
 
         {!isTvMode && (

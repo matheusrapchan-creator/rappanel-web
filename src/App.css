@@ -20,7 +20,7 @@
 
 .tv-mode .content-area {
   display: grid;
-  grid-template-columns: 1.05fr 1fr 0.9fr;
+  grid-template-columns: 1.55fr 0.7fr 0.85fr;
   grid-template-rows: 30px 46px minmax(0, 1fr);
   grid-template-areas:
     "topbar topbar topbar"
@@ -138,19 +138,23 @@
 }
 
 .tv-mode .table-wrapper th:nth-child(1) {
-  width: 42%;
+  width: 34%;
 }
 
 .tv-mode .table-wrapper th:nth-child(2) {
-  width: 24%;
-}
-
-.tv-mode .table-wrapper th:nth-child(3) {
   width: 20%;
 }
 
+.tv-mode .table-wrapper th:nth-child(3) {
+  width: 16%;
+}
+
 .tv-mode .table-wrapper th:nth-child(4) {
-  width: 14%;
+  width: 18%;
+}
+
+.tv-mode .table-wrapper th:nth-child(5) {
+  width: 12%;
 }
 
 .tv-mode .table-wrapper td small {
