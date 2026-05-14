@@ -158,6 +158,12 @@ function formatGeneration(value) {
   return `${Number(value).toLocaleString("pt-BR")} kWh/mês`;
 }
 
+function formatModuleInfo(orcamento) {
+  const moduleName = orcamento.marca_modulo || orcamento.modulo_nome || "Sem marca";
+  const modulePower = orcamento.modulo_potencia_w ? ` ${orcamento.modulo_potencia_w}W` : "";
+  return `${orcamento.modulos || "-"} · ${moduleName}${modulePower}`;
+}
+
 function quoteKey(item, index) {
   return String(item.id || `${item.cliente || "cliente"}-${index}`);
 }
@@ -703,7 +709,7 @@ function ProjetosList({ projetos, orcamentos = [], title = "Projetos fechados", 
                   <div className="project-equipment">
                     <div>
                       <span>Módulos</span>
-                      <strong>{orcamento.modulos || "-"} · {orcamento.marca_modulo || orcamento.modulo_nome || "Sem marca"}</strong>
+                      <strong>{formatModuleInfo(orcamento)}</strong>
                     </div>
                     <div>
                       <span>Inversor</span>
