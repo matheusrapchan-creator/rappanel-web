@@ -691,8 +691,8 @@ function ProjetosList({ projetos, orcamentos = [], title = "Projetos fechados", 
           const orcamento = orcamentosPorId.get(Number(projeto.orcamento_id));
 
           return (
-            <article className="project-row" key={projeto.id || `${projeto.cliente}-${projeto.orcamento_id}`}>
-              <div>
+            <article className="project-row project-quote-row" key={projeto.id || `${projeto.cliente}-${projeto.orcamento_id}`}>
+              <div className="project-main">
                 <strong>{projeto.cliente || "Cliente sem nome"}</strong>
                 <small>
                   Orçamento #{projeto.orcamento_id || "-"}
@@ -701,10 +701,18 @@ function ProjetosList({ projetos, orcamentos = [], title = "Projetos fechados", 
                 </small>
                 {orcamento && (
                   <div className="project-equipment">
-                    <span>{orcamento.modulos || "-"} módulos</span>
-                    <span>{orcamento.marca_modulo || orcamento.modulo_nome || "Módulo sem marca"}</span>
-                    <span>{orcamento.inversor || "Inversor não informado"}</span>
-                    <span>{formatGeneration(orcamento.geracao_estimada_kwh || orcamento.geracao)}</span>
+                    <div>
+                      <span>Módulos</span>
+                      <strong>{orcamento.modulos || "-"} · {orcamento.marca_modulo || orcamento.modulo_nome || "Sem marca"}</strong>
+                    </div>
+                    <div>
+                      <span>Inversor</span>
+                      <strong>{orcamento.inversor || "Não informado"}</strong>
+                    </div>
+                    <div>
+                      <span>Geração</span>
+                      <strong>{formatGeneration(orcamento.geracao_estimada_kwh || orcamento.geracao)}</strong>
+                    </div>
                   </div>
                 )}
               </div>

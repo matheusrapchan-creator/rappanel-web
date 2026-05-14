@@ -196,14 +196,21 @@
 }
 
 .tv-mode .project-equipment {
+  grid-template-columns: 1fr;
   gap: 4px;
   margin-top: 4px;
 }
 
+.tv-mode .project-equipment div {
+  padding: 4px 5px;
+}
+
 .tv-mode .project-equipment span {
-  min-height: 18px;
-  padding: 2px 5px;
   font-size: 9px;
+}
+
+.tv-mode .project-equipment strong {
+  font-size: 10px;
 }
 
 .tv-mode .client-row small {
@@ -1018,26 +1025,51 @@ td small {
   background: #fbfcfe;
 }
 
+.project-quote-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.project-main {
+  min-width: 0;
+}
+
 .project-row strong,
 .project-row small {
   display: block;
 }
 
 .project-equipment {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(115px, 0.7fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.project-equipment div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e3e9f2;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .project-equipment span {
-  min-height: 24px;
-  border-radius: 999px;
-  padding: 4px 8px;
-  background: #eef2f6;
   color: #344054;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
+  text-transform: uppercase;
+}
+
+.project-equipment strong {
+  color: #111827;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-row small,
@@ -1269,6 +1301,11 @@ td small {
   .project-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .project-quote-row,
+  .project-equipment {
+    grid-template-columns: 1fr;
   }
 
   .quote-value {
