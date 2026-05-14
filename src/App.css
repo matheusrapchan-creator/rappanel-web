@@ -195,6 +195,17 @@
   display: none;
 }
 
+.tv-mode .project-equipment {
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.tv-mode .project-equipment span {
+  min-height: 18px;
+  padding: 2px 5px;
+  font-size: 9px;
+}
+
 .tv-mode .client-row small {
   display: none;
 }
@@ -1010,6 +1021,23 @@ td small {
 .project-row strong,
 .project-row small {
   display: block;
+}
+
+.project-equipment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.project-equipment span {
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #eef2f6;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .project-row small,

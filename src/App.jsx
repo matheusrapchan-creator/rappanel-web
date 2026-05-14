@@ -667,7 +667,15 @@ function OrcamentosList({
   );
 }
 
-function ProjetosList({ projetos, title = "Projetos fechados", eyebrow = "Implantação", emptyTitle = "Nenhum projeto fechado", emptyCaption = "Quando um orçamento for fechado, o projeto aparecerá nesta área." }) {
+function ProjetosList({ projetos, orcamentos = [], title = "Projetos fechados", eyebrow = "Implantação", emptyTitle = "Nenhum projeto fechado", emptyCaption = "Quando um orçamento for fechado, o projeto aparecerá nesta área." }) {
+  const orcamentosPorId = useMemo(() => {
+    const items = new Map();
+    orcamentos.forEach((orcamento) => {
+      if (orcamento.id) items.set(Number(orcamento.id), orcamento);
+    });
+    return items;
+  }, [orcamentos]);
+
   return (
     <section className="panel project-panel">
       <div className="section-title">
@@ -679,21 +687,34 @@ function ProjetosList({ projetos, title = "Projetos fechados", eyebrow = "Implan
       </div>
 
       <div className="project-list">
-        {projetos.map((projeto) => (
-          <article className="project-row" key={projeto.id || `${projeto.cliente}-${projeto.orcamento_id}`}>
-            <div>
-              <strong>{projeto.cliente || "Cliente sem nome"}</strong>
-              <small>
-                Orçamento #{projeto.orcamento_id || "-"}
-                {projeto.observacao ? ` · ${projeto.observacao}` : ""}
-              </small>
-            </div>
-            <div className="project-status">
-              <StatusBadge status={projeto.status} />
-              <small>{formatDate({ data: projeto.atualizado_em || projeto.criado_em })}</small>
-            </div>
-          </article>
-        ))}
+        {projetos.map((projeto) => {
+          const orcamento = orcamentosPorId.get(Number(projeto.orcamento_id));
+
+          return (
+            <article className="project-row" key={projeto.id || `${projeto.cliente}-${projeto.orcamento_id}`}>
+              <div>
+                <strong>{projeto.cliente || "Cliente sem nome"}</strong>
+                <small>
+                  Orçamento #{projeto.orcamento_id || "-"}
+                  {orcamento?.opcao ? ` · ${orcamento.opcao}` : ""}
+                  {projeto.observacao ? ` · ${projeto.observacao}` : ""}
+                </small>
+                {orcamento && (
+                  <div className="project-equipment">
+                    <span>{orcamento.modulos || "-"} módulos</span>
+                    <span>{orcamento.marca_modulo || orcamento.modulo_nome || "Módulo sem marca"}</span>
+                    <span>{orcamento.inversor || "Inversor não informado"}</span>
+                    <span>{formatGeneration(orcamento.geracao_estimada_kwh || orcamento.geracao)}</span>
+                  </div>
+                )}
+              </div>
+              <div className="project-status">
+                <StatusBadge status={projeto.status} />
+                <small>{formatDate({ data: projeto.atualizado_em || projeto.criado_em })}</small>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       {!projetos.length && (
@@ -1324,13 +1345,14 @@ function App() {
         )}
 
         <section id="projetos">
-          <ProjetosList projetos={projetosAtivos} />
+          <ProjetosList projetos={projetosAtivos} orcamentos={orcamentos} />
         </section>
 
         {!isTvMode && (
           <section id="projetos-finalizados">
             <ProjetosList
               projetos={projetosFinalizados}
+              orcamentos={orcamentos}
               eyebrow="Histórico"
               title="Projetos finalizados"
               emptyTitle="Nenhum projeto finalizado"
