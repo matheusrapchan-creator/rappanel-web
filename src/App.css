@@ -190,27 +190,53 @@
   padding: 6px 8px;
 }
 
+.tv-mode .project-quote-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
 .tv-mode .project-row small,
 .tv-mode .project-status small {
   display: none;
 }
 
 .tv-mode .project-equipment {
-  grid-template-columns: 1fr;
-  gap: 4px;
-  margin-top: 4px;
+  display: block;
+  margin-top: 3px;
+  color: #475467;
+  line-height: 1.15;
 }
 
 .tv-mode .project-equipment div {
-  padding: 4px 5px;
+  display: inline;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .tv-mode .project-equipment span {
-  font-size: 9px;
+  display: none;
 }
 
 .tv-mode .project-equipment strong {
+  display: inline;
   font-size: 10px;
+  font-weight: 800;
+  white-space: normal;
+}
+
+.tv-mode .project-equipment div:nth-child(1)::after {
+  content: " · ";
+}
+
+.tv-mode .project-equipment div:nth-child(3) {
+  display: none;
+}
+
+.tv-mode .project-status {
+  justify-items: start;
 }
 
 .tv-mode .client-row small {
