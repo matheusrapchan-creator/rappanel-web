@@ -17,6 +17,7 @@ const initialAgenda = {
   hora: "",
   responsavel: "",
   cliente: "",
+  endereco: "",
   status: "agendado",
   observacao: "",
 };
@@ -99,6 +100,10 @@ function formatDate(item) {
     month: "short",
     year: "numeric",
   }).format(date)}${rawTime}`;
+}
+
+function wazeUrl(address) {
+  return `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
 }
 
 function moneyFromQuote(item) {
@@ -368,6 +373,15 @@ function AgendaForm({ onSaved }) {
             </select>
           </label>
         </div>
+
+        <label>
+          Endereço do chamado
+          <input
+            value={novoItem.endereco}
+            onChange={(event) => updateField("endereco", event.target.value)}
+            placeholder="Rua, número, bairro e cidade"
+          />
+        </label>
 
         <label>
           Observação
@@ -870,7 +884,22 @@ function FieldAgendaPage({ agenda, loading, error, onRefresh, onUpdateStatus, on
 
                   {(item.endereco || item.observacao) && (
                     <div className="field-note">
-                      {item.endereco && <strong>{item.endereco}</strong>}
+                      {item.endereco && (
+                        <div className="field-address">
+                          <div>
+                            <span>Endereço</span>
+                            <strong>{item.endereco}</strong>
+                          </div>
+                          <a
+                            className="field-map-link"
+                            href={wazeUrl(item.endereco)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Waze
+                          </a>
+                        </div>
+                      )}
                       {item.observacao && <span>{item.observacao}</span>}
                     </div>
                   )}
