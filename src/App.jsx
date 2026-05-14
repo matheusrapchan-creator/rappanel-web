@@ -796,8 +796,23 @@ function EstoquePage({ itens, movimentacoes }) {
 
 function FieldAgendaPage({ agenda, loading, error, onRefresh, onUpdateStatus, onLogout }) {
   const [updatingId, setUpdatingId] = useState("");
+  const grupos = [
+    {
+      title: "Presidente Prudente",
+      items: agenda.filter(isPresidentePrudenteAgenda),
+    },
+    {
+      title: "Outras cidades",
+      items: agenda.filter((item) => !isPresidentePrudenteAgenda(item)),
+    },
+  ];
 
   async function updateStatus(item, status) {
+    const actionLabel = status === "concluído" ? "concluir" : "marcar como em andamento";
+    const confirmed = window.confirm(`Confirmar ${actionLabel} esta atividade?\n\n${item.titulo || "Compromisso"} - ${item.cliente || "Sem cliente"}`);
+
+    if (!confirmed) return;
+
     setUpdatingId(String(item.id));
 
     try {
@@ -829,52 +844,59 @@ function FieldAgendaPage({ agenda, loading, error, onRefresh, onUpdateStatus, on
       {error && <div className="notice danger">{error}</div>}
 
       <section className="field-list">
-        {agenda.map((item) => (
-          <article className="field-card" key={item.id}>
-            <div className="field-card-head">
-              <div>
-                <strong>{item.titulo || "Compromisso"}</strong>
-                <small>{formatDate(item)}</small>
-              </div>
-              <StatusBadge status={item.status} />
-            </div>
+        {grupos.map((grupo) => (
+          grupo.items.length ? (
+            <Fragment key={grupo.title}>
+              <div className="field-group-title">{grupo.title}</div>
+              {grupo.items.map((item) => (
+                <article className="field-card" key={item.id}>
+                  <div className="field-card-head">
+                    <div>
+                      <strong>{item.titulo || "Compromisso"}</strong>
+                      <small>{formatDate(item)}</small>
+                    </div>
+                    <StatusBadge status={item.status} />
+                  </div>
 
-            <div className="field-info">
-              <span>Cliente</span>
-              <strong>{item.cliente || "-"}</strong>
-            </div>
+                  <div className="field-info">
+                    <span>Cliente</span>
+                    <strong>{item.cliente || "-"}</strong>
+                  </div>
 
-            <div className="field-info">
-              <span>Responsável</span>
-              <strong>{item.responsavel || "-"}</strong>
-            </div>
+                  <div className="field-info">
+                    <span>Responsável</span>
+                    <strong>{item.responsavel || "-"}</strong>
+                  </div>
 
-            {(item.endereco || item.observacao) && (
-              <div className="field-note">
-                {item.endereco && <strong>{item.endereco}</strong>}
-                {item.observacao && <span>{item.observacao}</span>}
-              </div>
-            )}
+                  {(item.endereco || item.observacao) && (
+                    <div className="field-note">
+                      {item.endereco && <strong>{item.endereco}</strong>}
+                      {item.observacao && <span>{item.observacao}</span>}
+                    </div>
+                  )}
 
-            <div className="field-card-actions">
-              <button
-                className="secondary-button"
-                type="button"
-                disabled={updatingId === String(item.id)}
-                onClick={() => updateStatus(item, "em andamento")}
-              >
-                Em andamento
-              </button>
-              <button
-                className="primary-button compact-button"
-                type="button"
-                disabled={updatingId === String(item.id)}
-                onClick={() => updateStatus(item, "concluído")}
-              >
-                Concluir
-              </button>
-            </div>
-          </article>
+                  <div className="field-card-actions">
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      disabled={updatingId === String(item.id)}
+                      onClick={() => updateStatus(item, "em andamento")}
+                    >
+                      Em andamento
+                    </button>
+                    <button
+                      className="primary-button compact-button"
+                      type="button"
+                      disabled={updatingId === String(item.id)}
+                      onClick={() => updateStatus(item, "concluído")}
+                    >
+                      Concluir
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </Fragment>
+          ) : null
         ))}
       </section>
 
