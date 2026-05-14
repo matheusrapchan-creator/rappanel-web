@@ -4,8 +4,11 @@ import "./App.css";
 const API_URL = import.meta.env.VITE_API_URL || "https://api.raptech.com.br";
 const API_TOKEN = import.meta.env.VITE_API_TOKEN || "";
 const PANEL_PASSWORD = import.meta.env.VITE_PANEL_PASSWORD || "";
+const FIELD_PASSWORD = import.meta.env.VITE_FIELD_PASSWORD || "";
 const ACCESS_KEY = "rappanel_device_access";
+const FIELD_ACCESS_KEY = "rappanel_field_device_access";
 const PROJECT_FINISHED_STATUS = "finalizado";
+const FIELD_RESPONSIBLES = ["marcos", "pedro"];
 
 const initialAgenda = {
   titulo: "",
@@ -104,6 +107,11 @@ function moneyFromQuote(item) {
 
 function isAgendaHistory(item) {
   return ["concluído", "concluido", "cancelado"].includes(normalizeStatus(item.status));
+}
+
+function isFieldAgenda(item) {
+  const responsavel = normalizeText(item.responsavel);
+  return Boolean(responsavel) && FIELD_RESPONSIBLES.some((name) => responsavel.includes(name));
 }
 
 function isPresidentePrudenteAgenda(item) {
@@ -227,15 +235,15 @@ function EmptyState({ title, caption }) {
   );
 }
 
-function LoginScreen({ error, password, onPasswordChange, onSubmit }) {
+function LoginScreen({ error, password, onPasswordChange, onSubmit, title = "RapPanel", subtitle = "Acesso ao painel", placeholder = "Digite a senha do painel", buttonLabel = "Entrar neste dispositivo" }) {
   return (
     <main className="login-shell">
       <form className="login-card" onSubmit={onSubmit}>
         <div className="brand login-brand">
           <span className="brand-mark">R</span>
           <div>
-            <strong>RapPanel</strong>
-            <small>Acesso ao painel</small>
+            <strong>{title}</strong>
+            <small>{subtitle}</small>
           </div>
         </div>
 
@@ -246,14 +254,14 @@ function LoginScreen({ error, password, onPasswordChange, onSubmit }) {
             type="password"
             value={password}
             onChange={(event) => onPasswordChange(event.target.value)}
-            placeholder="Digite a senha do painel"
+            placeholder={placeholder}
           />
         </label>
 
         {error && <div className="error-message">{error}</div>}
 
         <button className="primary-button" type="submit">
-          Entrar neste dispositivo
+          {buttonLabel}
         </button>
       </form>
     </main>
@@ -786,6 +794,100 @@ function EstoquePage({ itens, movimentacoes }) {
   );
 }
 
+function FieldAgendaPage({ agenda, loading, error, onRefresh, onUpdateStatus, onLogout }) {
+  const [updatingId, setUpdatingId] = useState("");
+
+  async function updateStatus(item, status) {
+    setUpdatingId(String(item.id));
+
+    try {
+      await onUpdateStatus(item, status);
+    } finally {
+      setUpdatingId("");
+    }
+  }
+
+  return (
+    <main className="field-shell">
+      <header className="field-header">
+        <div>
+          <span className="eyebrow">Equipe de campo</span>
+          <h1>Agenda de hoje</h1>
+        </div>
+        <div className="field-actions">
+          <button className="ghost-button" type="button" onClick={onRefresh} disabled={loading}>
+            {loading ? "Atualizando..." : "Atualizar"}
+          </button>
+          {FIELD_PASSWORD && (
+            <button className="ghost-button" type="button" onClick={onLogout}>
+              Sair
+            </button>
+          )}
+        </div>
+      </header>
+
+      {error && <div className="notice danger">{error}</div>}
+
+      <section className="field-list">
+        {agenda.map((item) => (
+          <article className="field-card" key={item.id}>
+            <div className="field-card-head">
+              <div>
+                <strong>{item.titulo || "Compromisso"}</strong>
+                <small>{formatDate(item)}</small>
+              </div>
+              <StatusBadge status={item.status} />
+            </div>
+
+            <div className="field-info">
+              <span>Cliente</span>
+              <strong>{item.cliente || "-"}</strong>
+            </div>
+
+            <div className="field-info">
+              <span>Responsável</span>
+              <strong>{item.responsavel || "-"}</strong>
+            </div>
+
+            {(item.endereco || item.observacao) && (
+              <div className="field-note">
+                {item.endereco && <strong>{item.endereco}</strong>}
+                {item.observacao && <span>{item.observacao}</span>}
+              </div>
+            )}
+
+            <div className="field-card-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={updatingId === String(item.id)}
+                onClick={() => updateStatus(item, "em andamento")}
+              >
+                Em andamento
+              </button>
+              <button
+                className="primary-button compact-button"
+                type="button"
+                disabled={updatingId === String(item.id)}
+                onClick={() => updateStatus(item, "concluído")}
+              >
+                Concluir
+              </button>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {!agenda.length && (
+        <EmptyState
+          title="Nenhuma atividade atribuída"
+          caption="Apenas atividades com responsável Marcos ou Pedro aparecem aqui."
+        />
+      )}
+    </main>
+  );
+}
+
 function KanbanPreview({ agenda, orcamentos }) {
   const columns = [
     {
@@ -833,9 +935,16 @@ function KanbanPreview({ agenda, orcamentos }) {
 }
 
 function App() {
+  const isFieldMode = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("campo") === "1" || window.location.pathname.replace(/\/+$/, "") === "/campo";
+  }, []);
   const [isAuthenticated, setIsAuthenticated] = useState(() => !PANEL_PASSWORD || localStorage.getItem(ACCESS_KEY) === "granted");
+  const [isFieldAuthenticated, setIsFieldAuthenticated] = useState(() => !FIELD_PASSWORD || localStorage.getItem(FIELD_ACCESS_KEY) === "granted");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [fieldLoginPassword, setFieldLoginPassword] = useState("");
+  const [fieldLoginError, setFieldLoginError] = useState("");
   const [agenda, setAgenda] = useState([]);
   const [orcamentos, setOrcamentos] = useState([]);
   const [projetos, setProjetos] = useState([]);
@@ -846,6 +955,8 @@ function App() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const isTvMode = useMemo(() => new URLSearchParams(window.location.search).get("tv") === "1", []);
+
+  const canLoadData = isFieldMode ? isFieldAuthenticated : isAuthenticated;
 
   async function carregarDados(options = {}) {
     if (!options.silent) setLoading(true);
@@ -876,7 +987,7 @@ function App() {
   }
 
   useEffect(() => {
-    if (!isAuthenticated) return undefined;
+    if (!canLoadData) return undefined;
 
     // Initial API sync when the panel opens.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -898,7 +1009,7 @@ function App() {
       window.clearInterval(intervalId);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, [isAuthenticated]);
+  }, [canLoadData]);
 
   function handleLogin(event) {
     event.preventDefault();
@@ -917,6 +1028,37 @@ function App() {
   function handleLogout() {
     localStorage.removeItem(ACCESS_KEY);
     setIsAuthenticated(!PANEL_PASSWORD);
+  }
+
+  function handleFieldLogin(event) {
+    event.preventDefault();
+
+    if (fieldLoginPassword === FIELD_PASSWORD) {
+      localStorage.setItem(FIELD_ACCESS_KEY, "granted");
+      setIsFieldAuthenticated(true);
+      setFieldLoginError("");
+      setFieldLoginPassword("");
+      return;
+    }
+
+    setFieldLoginError("Senha inválida.");
+  }
+
+  function handleFieldLogout() {
+    localStorage.removeItem(FIELD_ACCESS_KEY);
+    setIsFieldAuthenticated(!FIELD_PASSWORD);
+  }
+
+  async function atualizarStatusAgenda(item, status) {
+    await requestApi(`/agenda/${item.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status,
+        motivo_status: `Atualizado pela equipe de campo para ${status}`,
+      }),
+    });
+
+    await carregarDados({ silent: true });
   }
 
   async function fecharOrcamentoComoProjeto(orcamento) {
@@ -939,6 +1081,12 @@ function App() {
 
   const agendaAtiva = useMemo(() => agendaFiltrada.filter((item) => !isAgendaHistory(item)), [agendaFiltrada]);
   const historicoAgenda = useMemo(() => agendaFiltrada.filter(isAgendaHistory), [agendaFiltrada]);
+  const agendaCampo = useMemo(() => (
+    agenda
+      .filter((item) => !isAgendaHistory(item))
+      .filter(isFieldAgenda)
+      .sort((a, b) => String(a.data || "").localeCompare(String(b.data || "")) || String(a.hora || "").localeCompare(String(b.hora || "")))
+  ), [agenda]);
 
   const orcamentosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -975,6 +1123,35 @@ function App() {
   const clientesAgrupados = useMemo(() => groupQuotesByClient(orcamentosEmAberto), [orcamentosEmAberto]);
   const clientesComOrcamento = clientesAgrupados.length;
   const valorAberto = clientesAgrupados.reduce((total, cliente) => total + cliente.average, 0);
+
+  if (isFieldMode && !isFieldAuthenticated) {
+    return (
+      <LoginScreen
+        title="RapPanel Campo"
+        subtitle="Acesso da equipe externa"
+        placeholder="Digite a senha da equipe de campo"
+        buttonLabel="Entrar neste celular"
+        error={fieldLoginError}
+        password={fieldLoginPassword}
+        onPasswordChange={setFieldLoginPassword}
+        onSubmit={handleFieldLogin}
+      />
+    );
+  }
+
+  if (isFieldMode) {
+    return (
+      <FieldAgendaPage
+        agenda={agendaCampo}
+        loading={loading}
+        error={error}
+        onRefresh={() => carregarDados()}
+        onUpdateStatus={atualizarStatusAgenda}
+        onLogout={handleFieldLogout}
+      />
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <LoginScreen

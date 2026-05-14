@@ -301,6 +301,99 @@
   background: #101828;
 }
 
+.field-shell {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 100vh;
+  padding: 14px;
+  background: #eef2f6;
+}
+
+.field-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-header h1 {
+  font-size: 26px;
+}
+
+.field-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.field-actions .ghost-button {
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.field-list {
+  display: grid;
+  gap: 12px;
+}
+
+.field-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.field-card-head,
+.field-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.field-card-head strong,
+.field-card-head small,
+.field-info strong,
+.field-info span,
+.field-note strong,
+.field-note span {
+  display: block;
+}
+
+.field-card-head small,
+.field-info span,
+.field-note span {
+  color: #667085;
+}
+
+.field-info {
+  display: grid;
+  gap: 3px;
+}
+
+.field-info span {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.field-note {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.field-card-actions .secondary-button,
+.field-card-actions .primary-button {
+  width: 100%;
+  margin-top: 0;
+}
+
 .login-card {
   display: grid;
   gap: 16px;
@@ -1052,6 +1145,18 @@ td small {
   .content-area {
     gap: 16px;
     padding: 12px;
+  }
+
+  .field-shell {
+    padding: 12px;
+  }
+
+  .field-header {
+    display: grid;
+  }
+
+  .field-actions {
+    width: 100%;
   }
 
   .sidebar {
